@@ -7,8 +7,8 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 
 UPLOAD_FOLDER = os.path.join(app.root_path, "static", "uploads")
-
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
 
 # データベースを作る
 def init_db():
@@ -73,7 +73,8 @@ def pop_list():
         tomorrow=tomorrow
     )
 
-# 撤去確認画面
+
+# 撤去確認
 @app.route("/remove/check", methods=["POST"])
 def remove_check():
 
@@ -102,23 +103,40 @@ def remove_check():
         pop=pop
     )
 
+
+# 撤去完了
+@app.route("/remove/confirm/<int:pop_id>", methods=["POST"])
+def remove_confirm(pop_id):
+
+    conn = sqlite3.connect("database.db")
+    conn.row_factory = sqlite3.Row
+
+    pop = conn.execute("""
+        SELECT *
+        FROM pops
+        WHERE id = ?
+    """, (pop_id,)).fetchone()
+
+    if pop is None:
+        conn.close()
+        return "POPが見つかりません。"
+
     conn.execute("""
         UPDATE pops
         SET status = 'removed'
         WHERE id = ?
-    """, (pop[0],))
+    """, (pop_id,))
 
     conn.commit()
     conn.close()
 
-    return """
-    <h1>✅ 撤去完了</h1>
-    <p>バーコードが一致しました。</p>
-    <p>POPを撤去済みにしました。</p>
-    <a href="/list">POP一覧を見る</a>
-    """
+    return render_template(
+        "remove_complete.html",
+        pop=pop
+    )
 
-# 撤去完了
+
+# 古い手動撤去用
 @app.route("/remove/<int:pop_id>", methods=["POST"])
 def remove_pop(pop_id):
 
@@ -136,7 +154,7 @@ def remove_pop(pop_id):
     return redirect("/list")
 
 
-# POP登録画面
+# POP登録
 @app.route("/register", methods=["GET", "POST"])
 def register():
 
@@ -152,6 +170,12 @@ def register():
         image_path = ""
 
         if image and image.filename:
+
+            os.makedirs(
+                app.config["UPLOAD_FOLDER"],
+                exist_ok=True
+            )
+
             filename = secure_filename(image.filename)
 
             image_path = os.path.join(
@@ -167,7 +191,13 @@ def register():
             INSERT INTO pops
             (pop_name, barcode, location, expire_date, image_path)
             VALUES (?, ?, ?, ?, ?)
-        """, (pop_name, barcode, location, expire_date, image_path))
+        """, (
+            pop_name,
+            barcode,
+            location,
+            expire_date,
+            image_path
+        ))
 
         conn.commit()
         conn.close()
@@ -182,6 +212,7 @@ def register():
     return render_template("register.html")
 
 
+# POP編集
 @app.route("/edit/<int:pop_id>", methods=["GET", "POST"])
 def edit(pop_id):
 
@@ -229,6 +260,7 @@ def edit(pop_id):
     return render_template("edit.html", pop=pop)
 
 
+# POP削除
 @app.route("/delete/<int:pop_id>", methods=["GET", "POST"])
 def delete(pop_id):
 
@@ -260,6 +292,8 @@ def delete(pop_id):
 
     return render_template("delete.html", pop=pop)
 
+
+# 撤去済みPOP一括削除
 @app.route("/delete_removed", methods=["POST"])
 def delete_removed():
 
@@ -275,6 +309,8 @@ def delete_removed():
 
     return redirect("/list")
 
+
+# 撤去済みPOP一括削除確認
 @app.route("/delete_removed/confirm", methods=["GET", "POST"])
 def delete_removed_confirm():
 
@@ -294,58 +330,16 @@ def delete_removed_confirm():
 
     return render_template("delete_removed.html")
 
-@app.route("/remove/confirm/<int:pop_id>", methods=["POST"])
-def remove_confirm(pop_id):
 
-    conn = sqlite3.connect("database.db")
-    conn.row_factory = sqlite3.Row
-
-    pop = conn.execute("""
-        SELECT *
-        FROM pops
-        WHERE id = ?
-    """, (pop_id,)).fetchone()
-
-    if pop is None:
-        conn.close()
-        return "POPが見つかりません。"
-
-    conn.execute("""
-        UPDATE pops
-        SET status = 'removed'
-        WHERE id = ?
-    """, (pop_id,))
-
-    conn.commit()
-    conn.close()
-
-    return render_template(
-        "remove_complete.html",
-        pop=pop
-    )
-
-    conn = sqlite3.connect("database.db")
-
-    conn.execute("""
-        UPDATE pops
-        SET status = 'removed'
-        WHERE id = ? AND status = 'active'
-    """, (pop_id,))
-
-    conn.commit()
-    conn.close()
-
-    return """
-    <h1>✅ 撤去完了</h1>
-
-    <p>POPを撤去済みにしました。</p>
-
-    <a href="/list">POP一覧を見る</a>
-    """
-
+# 撤去画面
 @app.route("/remove")
 def remove():
     return render_template("remove.html")
+
+
+# データベース初期化
+init_db()
+
 
 app.run(
     host="0.0.0.0",
