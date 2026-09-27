@@ -4,9 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
     <title>POP一覧</title>
 </head>
 
@@ -91,9 +89,11 @@
                     <h3>{{ pop["pop_name"] }}</h3>
 
 
+                    <!-- POP画像 -->
+
                     {% if pop["image_path"] %}
 
-                    <img src="{{ url_for('static', filename='uploads/' + pop['image_path'].split('\\')[-1]) }}"
+                    <img src="{{ url_for('static', filename=pop['image_path']) }}"
                         style="width: 100%; max-width: 300px; border-radius: 10px;">
 
                     {% endif %}
@@ -125,7 +125,9 @@
 
 
                         <a href="/edit/{{ pop['id'] }}">
-                            <button type="button">✏️ 編集</button>
+                            <button type="button">
+                                ✏️ 編集
+                            </button>
                         </a>
 
 
@@ -178,9 +180,11 @@
                     <h3>{{ pop["pop_name"] }}</h3>
 
 
+                    <!-- POP画像 -->
+
                     {% if pop["image_path"] %}
 
-                    <img src="{{ url_for('static', filename='uploads/' + pop['image_path'].split('\\')[-1]) }}"
+                    <img src="{{ url_for('static', filename=pop['image_path']) }}"
                         style="width: 100%; max-width: 300px; border-radius: 10px;">
 
                     {% endif %}

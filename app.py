@@ -12,6 +12,7 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # データベースを作る
 def init_db():
+
     conn = sqlite3.connect("database.db")
 
     conn.execute("""
@@ -36,6 +37,7 @@ def init_db():
     conn.close()
 
 
+# ホーム
 @app.route("/")
 def index():
     return render_template("home.html")
@@ -169,6 +171,7 @@ def register():
 
         image_path = ""
 
+        # 画像がある場合
         if image and image.filename:
 
             os.makedirs(
@@ -178,12 +181,16 @@ def register():
 
             filename = secure_filename(image.filename)
 
-            image_path = os.path.join(
+            # サーバー上に保存する実際のファイルパス
+            file_path = os.path.join(
                 app.config["UPLOAD_FOLDER"],
                 filename
             )
 
-            image.save(image_path)
+            image.save(file_path)
+
+            # データベースにはWeb用の相対パスを保存
+            image_path = "uploads/" + filename
 
         conn = sqlite3.connect("database.db")
 
@@ -202,12 +209,7 @@ def register():
         conn.commit()
         conn.close()
 
-        return """
-        <h1>POPを登録しました！</h1>
-        <p><a href="/">ホームに戻る</a></p>
-        <p><a href="/register">続けてPOPを登録する</a></p>
-        <p><a href="/list">POP一覧を見る</a></p>
-        """
+        return render_template("register_complete.html")
 
     return render_template("register.html")
 
@@ -257,7 +259,10 @@ def edit(pop_id):
 
     conn.close()
 
-    return render_template("edit.html", pop=pop)
+    return render_template(
+        "edit.html",
+        pop=pop
+    )
 
 
 # POP削除
@@ -290,7 +295,10 @@ def delete(pop_id):
 
     conn.close()
 
-    return render_template("delete.html", pop=pop)
+    return render_template(
+        "delete.html",
+        pop=pop
+    )
 
 
 # 撤去済みPOP一括削除
@@ -328,7 +336,9 @@ def delete_removed_confirm():
 
         return redirect("/list")
 
-    return render_template("delete_removed.html")
+    return render_template(
+        "delete_removed.html"
+    )
 
 
 # 撤去画面
@@ -341,6 +351,7 @@ def remove():
 init_db()
 
 
+# Flask起動
 app.run(
     host="0.0.0.0",
     port=5000,
