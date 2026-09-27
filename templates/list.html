@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <title>POP一覧</title>
+</head>
+
+<body>
+
+    <h1>コンビニPOP撤去ナビゲーター</h1>
+
+    <nav>
+        <a href="/">🏠 ホーム</a>
+        <a href="/register">➕ POP登録</a>
+        <a href="/remove">📷 撤去確認</a>
+    </nav>
+
+
+    <!-- 未撤去のPOP -->
+
+    <h2>未撤去のPOP</h2>
+
+    <div class="summary">
+
+        <p>
+            今日撤去：
+            {{ pops | selectattr("status", "equalto", "active")
+            | selectattr("expire_date", "equalto", today)
+            | list
+            | length }}件
+        </p>
+
+        <p>
+            期限切れ：
+            {{ pops | selectattr("status", "equalto", "active")
+            | selectattr("expire_date", "lt", today)
+            | list
+            | length }}件
+        </p>
+
+        <p>
+            明日撤去：
+            {{ pops | selectattr("status", "equalto", "active")
+            | selectattr("expire_date", "equalto", tomorrow)
+            | list
+            | length }}件
+        </p>
+
+    </div>
+
+
+    {% set namespace = namespace(last_location="") %}
+
+    {% for pop in pops %}
+
+    {% if pop["status"] == "active" %}
+
+    {% if pop["location"] != namespace.last_location %}
+
+    <h3 class="location-title">
+        📍 {{ pop["location"] }}
+    </h3>
+
+    {% set namespace.last_location = pop["location"] %}
+
+    {% endif %}
+
+
+    {% if pop["expire_date"] < today %} <div class="pop-card expired">
+
+        {% elif pop["expire_date"] == today %}
+
+        <div class="pop-card today">
+
+            {% elif pop["expire_date"] == tomorrow %}
+
+            <div class="pop-card tomorrow">
+
+                {% else %}
+
+                <div class="pop-card future">
+
+                    {% endif %}
+
+
+                    <h3>{{ pop["pop_name"] }}</h3>
+
+
+                    {% if pop["image_path"] %}
+
+                    <img src="{{ url_for('static', filename='uploads/' + pop['image_path'].split('\\')[-1]) }}"
+                        style="width: 100%; max-width: 300px; border-radius: 10px;">
+
+                    {% endif %}
+
+
+                    <p>JANコード：{{ pop["barcode"] }}</p>
+
+                    <p>設置場所：{{ pop["location"] }}</p>
+
+
+                    {% if pop["expire_date"] < today %} <p>期限切れ</p>
+
+                        {% elif pop["expire_date"] == today %}
+
+                        <p>今日撤去</p>
+
+                        {% elif pop["expire_date"] == tomorrow %}
+
+                        <p>明日撤去</p>
+
+                        {% else %}
+
+                        <p>撤去期限：{{ pop["expire_date"] }}</p>
+
+                        {% endif %}
+
+
+                        <p>状態：未撤去</p>
+
+
+                        <a href="/edit/{{ pop['id'] }}">
+                            <button type="button">✏️ 編集</button>
+                        </a>
+
+
+                        <form method="GET" action="/delete/{{ pop['id'] }}">
+
+                            <button type="submit">
+                                🗑️ 削除
+                            </button>
+
+                        </form>
+
+
+                        <a href="/remove">
+
+                            <button type="button">
+                                📷 バーコードで撤去確認
+                            </button>
+
+                        </a>
+
+                </div>
+
+                <hr>
+
+                {% endif %}
+
+                {% endfor %}
+
+
+                <!-- 撤去済みのPOP -->
+
+                <h2>撤去済みのPOP</h2>
+
+
+                <a href="/delete_removed/confirm">
+
+                    <button type="button">
+                        🗑️ 撤去済みPOPを一斉削除
+                    </button>
+
+                </a>
+
+
+                {% for pop in pops %}
+
+                {% if pop["status"] == "removed" %}
+
+                <div>
+
+                    <h3>{{ pop["pop_name"] }}</h3>
+
+
+                    {% if pop["image_path"] %}
+
+                    <img src="{{ url_for('static', filename='uploads/' + pop['image_path'].split('\\')[-1]) }}"
+                        style="width: 100%; max-width: 300px; border-radius: 10px;">
+
+                    {% endif %}
+
+
+                    <p>JANコード：{{ pop["barcode"] }}</p>
+
+                    <p>設置場所：{{ pop["location"] }}</p>
+
+                    <p>状態：✅ 撤去済み</p>
+
+                </div>
+
+                <hr>
+
+                {% endif %}
+
+                {% endfor %}
+
+
+</body>
+
+</html>
