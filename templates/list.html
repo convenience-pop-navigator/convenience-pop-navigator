@@ -92,10 +92,7 @@
                     <!-- POP画像 -->
 
                     {% if pop["image_path"] %}
-
-                    <img src="{{ url_for('static', filename=pop['image_path']) }}"
-                        style="width: 100%; max-width: 300px; border-radius: 10px;">
-
+                    <img src="{{ pop['image_path'] }}" style="width: 100%; max-width: 300px; border-radius: 10px;">
                     {% endif %}
 
 
@@ -183,10 +180,7 @@
                     <!-- POP画像 -->
 
                     {% if pop["image_path"] %}
-
-                    <img src="{{ url_for('static', filename=pop['image_path']) }}"
-                        style="width: 100%; max-width: 300px; border-radius: 10px;">
-
+                    <img src="{{ pop['image_path'] }}" style="width: 100%; max-width: 300px; border-radius: 10px;">
                     {% endif %}
 
 
