@@ -23,47 +23,46 @@
 
     {% if pop["image_path"] %}
 
-    <img src="{{ url_for('static', filename='uploads/' + pop['image_path'].split('\\')[-1]) }}"
-        style="width: 100%; max-width: 300px; border-radius: 10px;">
+    <<img src="{{ pop['image_path'] }}" style="width: 100%; max-width: 300px; border-radius: 10px;">
 
-    {% endif %}
+        {% endif %}
 
-    <h3>{{ pop["pop_name"] }}</h3>
+        <h3>{{ pop["pop_name"] }}</h3>
 
-    <p>
-        JANコード：{{ pop["barcode"] }}
-    </p>
+        <p>
+            JANコード：{{ pop["barcode"] }}
+        </p>
 
-    <p>
-        📍 設置場所：{{ pop["location"] }}
-    </p>
+        <p>
+            📍 設置場所：{{ pop["location"] }}
+        </p>
 
-    <p>
-        このPOPを撤去しましたか？
-    </p>
+        <p>
+            このPOPを撤去しましたか？
+        </p>
 
-    <form method="POST" action="/remove/confirm/{{ pop['id'] }}">
+        <form method="POST" action="/remove/confirm/{{ pop['id'] }}">
 
-        <button type="submit">
-            ✅ このPOPを撤去完了にする
-        </button>
+            <button type="submit">
+                ✅ このPOPを撤去完了にする
+            </button>
 
-    </form>
+        </form>
 
-    <br>
+        <br>
 
-    <a href="/remove">
-        別のPOPを読み取る
-    </a>
+        <a href="/remove">
+            別のPOPを読み取る
+        </a>
 
-    <br><br>
+        <br><br>
 
-    <nav>
-        <a href="/">🏠 ホーム</a>
-        <a href="/list">📋 POP一覧</a>
-        <a href="/register">➕ POP登録</a>
-        <a href="/remove">📷 撤去確認</a>
-    </nav>
+        <nav>
+            <a href="/">🏠 ホーム</a>
+            <a href="/list">📋 POP一覧</a>
+            <a href="/register">➕ POP登録</a>
+            <a href="/remove">📷 撤去確認</a>
+        </nav>
 
 </body>
 
