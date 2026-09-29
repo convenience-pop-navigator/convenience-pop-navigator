@@ -11,7 +11,66 @@
 
     <title>撤去確認</title>
 
+    <style>
+        .jan-choice {
+            display: flex;
+            gap: 12px;
+            margin: 15px 0 25px 0;
+        }
+
+        .jan-choice label {
+            flex: 1;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+            background-color: white;
+        }
+
+        .jan-choice input {
+            display: none;
+        }
+
+        .jan-choice label.selected {
+            border-color: #333;
+            background-color: #eee;
+        }
+
+        .section {
+            margin-top: 20px;
+        }
+
+        .pop-card {
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+            background-color: white;
+        }
+
+        .pop-card img {
+            width: 100%;
+            max-width: 300px;
+            border-radius: 10px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .remove-button {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+    </style>
+
 </head>
+
 
 <body>
 
@@ -19,46 +78,143 @@
 
     <h2>📷 撤去確認</h2>
 
-    <p>
-        撤去するPOPのバーコードを読み取ってください。
-    </p>
+
+    <label>撤去するPOPの種類</label>
 
 
-    <button type="button" id="scanButton">
-        📷 バーコードを読み取る
-    </button>
+    <div class="jan-choice">
+
+        <label id="janYesLabel" class="selected">
+
+            <input type="radio" name="remove_type" value="yes" checked>
+
+            📷 JANあり
+
+        </label>
 
 
-    <br><br>
+        <label id="janNoLabel">
+
+            <input type="radio" name="remove_type" value="no">
+
+            📝 JANなし
+
+        </label>
+
+    </div>
 
 
-    <video id="barcodeReader" width="100%" autoplay>
-    </video>
+    <!-- JANあり -->
 
+    <div id="barcodeSection" class="section">
 
-    <br><br>
+        <h3>📷 JANありPOP</h3>
 
+        {% if barcode_pops %}
 
-    <label>読み取ったJANコード</label>
+        <p>
+            撤去するPOPのバーコードを読み取ってください。
+        </p>
 
-    <input type="text" id="barcode" readonly>
-
-
-    <br>
-
-
-    <form method="POST" action="/remove/check">
-
-        <input type="hidden" name="barcode" id="removeBarcode">
-
-        <button type="submit">
-            🔍 このバーコードを確認する
+        <button type="button" id="scanButton">
+            📷 バーコードを読み取る
         </button>
 
-    </form>
+        <br><br>
+
+        <video id="barcodeReader" width="100%" autoplay></video>
+
+        <br><br>
+
+        <label>読み取ったJANコード</label>
+        <br>
+
+        <input type="text" id="barcode" readonly>
+
+        <br><br>
+
+        <form method="POST" action="/remove/check">
+
+            <input type="hidden" name="barcode" id="removeBarcode">
+
+            <button type="submit">
+                🔍 このバーコードを確認する
+            </button>
+
+        </form>
+
+        {% else %}
+
+        <p>現在、JANありの撤去対象POPはありません。</p>
+
+        {% endif %}
+
+    </div>
 
 
-    <br><br>
+    <!-- JANなし -->
+
+    <div id="noBarcodeSection" class="section" style="display: none;">
+
+        <h3>📝 JANなしPOP</h3>
+
+        <p>
+            写真と設置場所を確認して、撤去したPOPを選択してください。
+        </p>
+
+
+        {% if no_barcode_pops %}
+
+        {% for pop in no_barcode_pops %}
+
+        <div class="pop-card">
+
+            {% if pop["image_path"] %}
+
+            <img src="{{ pop['image_path'] }}" alt="POP写真">
+
+            {% endif %}
+
+
+            <h4>
+                {{ pop["pop_name"] }}
+            </h4>
+
+
+            <p>
+                📍 設置場所：
+                {{ pop["location"] }}
+            </p>
+
+
+            <p>
+                📅 撤去期限：
+                {{ pop["expire_date"] }}
+            </p>
+
+
+            <form method="POST" action="/remove/no_barcode/{{ pop['id'] }}">
+
+                <button type="submit" class="remove-button">
+                    ✅ 撤去完了
+                </button>
+
+            </form>
+
+        </div>
+
+        {% endfor %}
+
+
+        {% else %}
+
+        <p>
+            現在、JANなしの撤去対象POPはありません。
+        </p>
+
+        {% endif %}
+
+    </div>
 
 
     <nav>
@@ -75,12 +231,10 @@
             ➕ POP登録
         </a>
 
-        <a href="/remove">
-            📷 撤去確認
-        </a>
-
     </nav>
 
+
+    <!-- ZXing -->
 
     <script src="https://unpkg.com/@zxing/browser@latest"></script>
 
@@ -88,6 +242,18 @@
     <script>
 
         document.addEventListener("DOMContentLoaded", () => {
+
+            const janYesLabel =
+                document.getElementById("janYesLabel");
+
+            const janNoLabel =
+                document.getElementById("janNoLabel");
+
+            const barcodeSection =
+                document.getElementById("barcodeSection");
+
+            const noBarcodeSection =
+                document.getElementById("noBarcodeSection");
 
             const scanButton =
                 document.getElementById("scanButton");
@@ -99,50 +265,102 @@
                 document.getElementById("removeBarcode");
 
 
-            scanButton.addEventListener("click", async () => {
+            function updateRemoveType() {
 
-                const codeReader =
-                    new ZXingBrowser.BrowserMultiFormatReader();
-
-
-                try {
-
-                    const result =
-                        await codeReader.decodeOnceFromVideoDevice(
-                            undefined,
-                            "barcodeReader"
-                        );
+                const selected =
+                    document.querySelector(
+                        'input[name="remove_type"]:checked'
+                    ).value;
 
 
-                    barcodeInput.value =
-                        result.text;
+                if (selected === "yes") {
 
+                    barcodeSection.style.display = "block";
 
-                    removeBarcode.value =
-                        result.text;
+                    noBarcodeSection.style.display = "none";
 
+                    janYesLabel.classList.add("selected");
 
-                    alert(
-                        "バーコードを読み取りました。\n" +
-                        result.text
-                    );
+                    janNoLabel.classList.remove("selected");
 
+                } else {
 
-                } catch (error) {
+                    barcodeSection.style.display = "none";
 
-                    console.error(error);
+                    noBarcodeSection.style.display = "block";
 
-                    alert(
-                        "バーコードを読み取れませんでした。"
-                    );
+                    janYesLabel.classList.remove("selected");
+
+                    janNoLabel.classList.add("selected");
 
                 }
 
-            });
+            }
+
+
+            janYesLabel.addEventListener(
+                "click",
+                updateRemoveType
+            );
+
+
+            janNoLabel.addEventListener(
+                "click",
+                updateRemoveType
+            );
+
+
+            updateRemoveType();
+
+
+            scanButton.addEventListener(
+                "click",
+                async () => {
+
+                    const codeReader =
+                        new ZXingBrowser.BrowserMultiFormatReader();
+
+
+                    try {
+
+                        const result =
+                            await codeReader.decodeOnceFromVideoDevice(
+                                undefined,
+                                "barcodeReader"
+                            );
+
+
+                        barcodeInput.value =
+                            result.text;
+
+
+                        removeBarcode.value =
+                            result.text;
+
+
+                        alert(
+                            "バーコードを読み取りました。\n" +
+                            result.text
+                        );
+
+
+                    } catch (error) {
+
+                        console.error(error);
+
+                        alert(
+                            "バーコードを読み取れませんでした。"
+                        );
+
+                    }
+
+                }
+            );
 
         });
 
     </script>
+
 
 </body>
 

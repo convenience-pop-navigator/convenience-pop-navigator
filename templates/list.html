@@ -5,6 +5,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        /* 一覧ページのナビ */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background-color: white;
+            padding: 10px 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+        }
+
+        nav a {
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        /* ナビ固定分だけ、最初の内容が隠れないようにする */
+        body {
+            padding-top: 10px;
+        }
+    </style>
+
     <title>POP一覧</title>
 </head>
 
@@ -133,17 +159,6 @@
                             <button type="submit">
                                 🗑️ 削除
                             </button>
-
-                        </form>
-
-
-                        <a href="/remove">
-
-                            <button type="button">
-                                📷 バーコードで撤去確認
-                            </button>
-
-                        </a>
 
                 </div>
 

@@ -2,23 +2,175 @@
 <html lang="ja">
 
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <title>ホーム</title>
+
+    <title>コンビニPOP撤去ナビゲーター</title>
+
+    <style>
+        /* ==========================================
+           ホーム画面
+           ========================================== */
+
+        body {
+            padding-bottom: 90px;
+        }
+
+
+        /* メイン画像 */
+
+        .home-hero {
+            width: 100%;
+            display: block;
+            border-radius: 16px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+        }
+
+
+        /* ==========================================
+           下部ナビ
+           ========================================== */
+
+        .home-bottom-nav {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+
+            z-index: 1000;
+
+            display: flex;
+            gap: 0;
+
+            width: 100%;
+            max-width: 600px;
+
+            margin: 0 auto;
+
+            background: white;
+
+            border-top: 1px solid #ddd;
+
+            box-shadow:
+                0 -2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+
+        .home-bottom-nav a {
+            flex: 1;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            min-height: 70px;
+
+            padding: 8px 4px;
+
+            box-sizing: border-box;
+
+            background: white;
+
+            border-radius: 0;
+
+            box-shadow: none;
+
+            color: #333;
+
+            text-decoration: none;
+
+            font-size: 13px;
+
+            white-space: nowrap;
+        }
+
+
+        .home-bottom-nav a:hover {
+            background: #f5f5f5;
+        }
+
+
+        .home-nav-icon {
+            font-size: 25px;
+            margin-bottom: 3px;
+        }
+
+
+        .home-nav-text {
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+
+        /* ホームを現在地として表示 */
+
+        .home-bottom-nav .current {
+            color: #1976d2;
+        }
+
+
+        /* PCでも下部ナビを中央に収める */
+
+        @media (min-width: 601px) {
+
+            .home-bottom-nav {
+                left: 50%;
+                right: auto;
+
+                transform: translateX(-50%);
+            }
+
+        }
+    </style>
+
 </head>
+
 
 <body>
 
-    <h1>コンビニPOP撤去ナビゲーター</h1>
 
-    <h2>ホーム</h2>
+    <!-- ==========================================
+         ホーム画面メイン画像
+         ========================================== -->
 
-    <nav>
-        <p><a href="/register">＋ POPを登録する</a></p>
-        <p><a href="/list">📋 POP一覧を見る</a></p>
-        <p><a href="/remove">📷 撤去確認</a></p>
+    <img src="{{ url_for('static', filename='home_hero_final.png') }}" alt="コンビニPOP撤去ナビゲーター" class="home-hero">
+
+
+    <!-- ==========================================
+         下部ナビゲーション
+         ========================================== -->
+
+    <nav class="home-bottom-nav">
+
+        <a href="/" class="current">
+            <span class="home-nav-icon">🏠</span>
+            <span class="home-nav-text">ホーム</span>
+        </a>
+
+
+        <a href="/list">
+
+            <span class="home-nav-icon">📋</span>
+            <span class="home-nav-text">POP一覧</span>
+
+        </a>
+
+
+        <a href="/remove">
+
+            <span class="home-nav-icon">📷</span>
+            <span class="home-nav-text">撤去確認</span>
+
+        </a>
+
     </nav>
+
 
 </body>
 

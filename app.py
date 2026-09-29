@@ -8,6 +8,7 @@ from psycopg.rows import dict_row
 
 app = Flask(__name__)
 
+
 # ==========================================
 # Cloudinary設定
 # ==========================================
@@ -35,16 +36,23 @@ def init_db():
     conn = get_db_connection()
 
     with conn.cursor() as cur:
+
         cur.execute("""
             CREATE TABLE IF NOT EXISTS pops (
                 id SERIAL PRIMARY KEY,
                 pop_name TEXT NOT NULL,
-                barcode TEXT NOT NULL,
+                barcode TEXT,
                 location TEXT NOT NULL,
                 expire_date TEXT NOT NULL,
                 status TEXT NOT NULL DEFAULT 'active',
                 image_path TEXT
             )
+        """)
+
+        # 既存のNeonテーブルもJANなしを登録できるようにする
+        cur.execute("""
+            ALTER TABLE pops
+            ALTER COLUMN barcode DROP NOT NULL
         """)
 
     conn.commit()
@@ -95,11 +103,12 @@ def pop_list():
 
 
 # ==========================================
-# 撤去確認
+# 撤去確認（JANあり）
 # ==========================================
 @app.route("/remove/check", methods=["POST"])
 def remove_check():
-    barcode = request.form["barcode"]
+
+    barcode = request.form.get("barcode") or None
 
     conn = get_db_connection()
 
@@ -126,13 +135,15 @@ def remove_check():
 
 
 # ==========================================
-# 撤去完了
+# 撤去完了（JANあり）
 # ==========================================
 @app.route("/remove/confirm/<int:pop_id>", methods=["POST"])
 def remove_confirm(pop_id):
+
     conn = get_db_connection()
 
     with conn.cursor() as cur:
+
         cur.execute(
             "SELECT * FROM pops WHERE id = %s",
             (pop_id,)
@@ -160,9 +171,11 @@ def remove_confirm(pop_id):
 # ==========================================
 @app.route("/remove/<int:pop_id>", methods=["POST"])
 def remove_pop(pop_id):
+
     conn = get_db_connection()
 
     with conn.cursor() as cur:
+
         cur.execute(
             "UPDATE pops SET status = 'removed' WHERE id = %s",
             (pop_id,)
@@ -179,10 +192,14 @@ def remove_pop(pop_id):
 # ==========================================
 @app.route("/register", methods=["GET", "POST"])
 def register():
+
     if request.method == "POST":
 
         pop_name = request.form["pop_name"]
-        barcode = request.form["barcode"]
+
+        # JANがない場合はNoneとして保存
+        barcode = request.form.get("barcode") or None
+
         location = request.form["location"]
         expire_date = request.form["expire_date"]
 
@@ -194,6 +211,7 @@ def register():
         image_path = ""
 
         if image and image.filename:
+
             upload_result = cloudinary.uploader.upload(
                 image,
                 folder="convenience_pop_navigator"
@@ -207,6 +225,7 @@ def register():
         conn = get_db_connection()
 
         with conn.cursor() as cur:
+
             cur.execute("""
                 INSERT INTO pops
                 (pop_name, barcode, location, expire_date, image_path)
@@ -232,9 +251,11 @@ def register():
 # ==========================================
 @app.route("/edit/<int:pop_id>", methods=["GET", "POST"])
 def edit(pop_id):
+
     conn = get_db_connection()
 
     with conn.cursor() as cur:
+
         cur.execute(
             "SELECT * FROM pops WHERE id = %s",
             (pop_id,)
@@ -249,7 +270,9 @@ def edit(pop_id):
         if request.method == "POST":
 
             pop_name = request.form["pop_name"]
-            barcode = request.form["barcode"]
+
+            barcode = request.form.get("barcode") or None
+
             location = request.form["location"]
             expire_date = request.form["expire_date"]
 
@@ -283,9 +306,11 @@ def edit(pop_id):
 # ==========================================
 @app.route("/delete/<int:pop_id>", methods=["GET", "POST"])
 def delete(pop_id):
+
     conn = get_db_connection()
 
     with conn.cursor() as cur:
+
         cur.execute(
             "SELECT * FROM pops WHERE id = %s",
             (pop_id,)
@@ -319,9 +344,11 @@ def delete(pop_id):
 # ==========================================
 @app.route("/delete_removed", methods=["POST"])
 def delete_removed():
+
     conn = get_db_connection()
 
     with conn.cursor() as cur:
+
         cur.execute(
             "DELETE FROM pops WHERE status = 'removed'"
         )
@@ -343,6 +370,7 @@ def delete_removed_confirm():
         conn = get_db_connection()
 
         with conn.cursor() as cur:
+
             cur.execute(
                 "DELETE FROM pops WHERE status = 'removed'"
             )
@@ -360,7 +388,64 @@ def delete_removed_confirm():
 # ==========================================
 @app.route("/remove")
 def remove():
-    return render_template("remove.html")
+
+    conn = get_db_connection()
+
+    with conn.cursor() as cur:
+
+        # JANありの撤去対象
+        cur.execute("""
+            SELECT *
+            FROM pops
+            WHERE status = 'active'
+            AND barcode IS NOT NULL
+            ORDER BY expire_date, location
+        """)
+
+        barcode_pops = cur.fetchall()
+
+
+        # JANなしの撤去対象
+        cur.execute("""
+            SELECT *
+            FROM pops
+            WHERE status = 'active'
+            AND barcode IS NULL
+            ORDER BY expire_date, location
+        """)
+
+        no_barcode_pops = cur.fetchall()
+
+    conn.close()
+
+    return render_template(
+        "remove.html",
+        barcode_pops=barcode_pops,
+        no_barcode_pops=no_barcode_pops
+    )
+
+
+# ==========================================
+# JANなしPOPの撤去完了
+# ==========================================
+@app.route("/remove/no_barcode/<int:pop_id>", methods=["POST"])
+def remove_no_barcode(pop_id):
+
+    conn = get_db_connection()
+
+    with conn.cursor() as cur:
+
+        cur.execute("""
+            UPDATE pops
+            SET status = 'removed'
+            WHERE id = %s
+            AND barcode IS NULL
+        """, (pop_id,))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/remove")
 
 
 # ==========================================
