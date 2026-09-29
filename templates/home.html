@@ -21,7 +21,9 @@
         }
 
 
-        /* メイン画像 */
+        /* ==========================================
+           メイン画像
+           ========================================== */
 
         .home-hero {
             width: 100%;
@@ -33,11 +35,36 @@
 
 
         /* ==========================================
+           デモ環境の注意書き
+           ========================================== */
+
+        .demo-notice {
+            background: #fff8e1;
+            border: 1px solid #ffe082;
+            color: #5d4037;
+
+            padding: 12px;
+
+            margin: 15px 0 20px;
+
+            border-radius: 10px;
+
+            text-align: center;
+
+            font-size: 13px;
+            line-height: 1.6;
+
+            box-sizing: border-box;
+        }
+
+
+        /* ==========================================
            下部ナビ
            ========================================== */
 
         .home-bottom-nav {
             position: fixed;
+
             left: 0;
             right: 0;
             bottom: 0;
@@ -65,7 +92,9 @@
             flex: 1;
 
             display: flex;
+
             flex-direction: column;
+
             align-items: center;
             justify-content: center;
 
@@ -108,14 +137,18 @@
         }
 
 
-        /* ホームを現在地として表示 */
+        /* ==========================================
+           ホームを現在地として表示
+           ========================================== */
 
         .home-bottom-nav .current {
             color: #1976d2;
         }
 
 
-        /* PCでも下部ナビを中央に収める */
+        /* ==========================================
+           PCでも下部ナビを中央に収める
+           ========================================== */
 
         @media (min-width: 601px) {
 
@@ -143,20 +176,39 @@
 
 
     <!-- ==========================================
+         デモ環境の注意書き
+         ========================================== -->
+
+    <div class="demo-notice">
+
+        ⚠️ <strong>デモ環境です</strong><br>
+
+        このアプリはポートフォリオ用の公開デモです。<br>
+
+        個人情報・実際の店舗情報・社内情報は入力しないでください。
+
+    </div>
+
+
+    <!-- ==========================================
          下部ナビゲーション
          ========================================== -->
 
     <nav class="home-bottom-nav">
 
         <a href="/" class="current">
+
             <span class="home-nav-icon">🏠</span>
+
             <span class="home-nav-text">ホーム</span>
+
         </a>
 
 
         <a href="/list">
 
             <span class="home-nav-icon">📋</span>
+
             <span class="home-nav-text">POP一覧</span>
 
         </a>
@@ -165,6 +217,7 @@
         <a href="/remove">
 
             <span class="home-nav-icon">📷</span>
+
             <span class="home-nav-text">撤去確認</span>
 
         </a>
