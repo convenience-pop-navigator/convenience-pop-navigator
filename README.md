@@ -75,17 +75,7 @@ JANコードが登録されていないPOPについては、
 - Cloudinary
 - Render
 - GitHub
-
-## システム構成
-
-スマートフォン / タブレット / PC
-              ↓
-        Render（Flask）
-              ↓
-       ┌──────┴──────┐
-       ↓             ↓
- PostgreSQL       Cloudinary
-  （Neon）         （画像）
+- 
 
   ##公開URL
   https://convenience-pop-navigator.onrender.com
@@ -100,3 +90,15 @@ JANコードが登録されていないPOPについては、
 
 また、登録したPOP画像も公開環境上で共有されるため、
 人物写真や個人情報が写った画像などはアップロードしないでください。
+
+## システム構成
+
+```text
+スマートフォン / タブレット / PC
+              ↓
+        Render（Flask）
+              ↓
+       ┌──────┴──────┐
+       ↓             ↓
+ PostgreSQL       Cloudinary
+  （Neon）         （画像）
