@@ -86,3 +86,6 @@ JANコードが登録されていないPOPについては、
        ↓             ↓
  PostgreSQL       Cloudinary
   （Neon）         （画像）
+
+  ##公開URL
+  https://convenience-pop-navigator.onrender.com
